@@ -35,66 +35,60 @@ N — количество секторов на мишени. K — номер 
 import sys
 
 
-def solve(sectors, k=-1):
-    ssum = 0
-    ans = 0
-    seq_len = 0
-    for i in range(2 * len(sectors) - 1):
-        if k > 0 and i % len(sectors) == k:
-            ssum = 0
-        else:
-            ssum += sectors[i % len(sectors)]
+def kadane(A):
 
-        if seq_len == len(sectors):
-            ssum -= sectors[i % len(sectors) - 1]
-            seq_len = seq_len if ssum else 0
-        else:
-            seq_len = seq_len + 1 if ssum else 0
+    # stores maximum sum sublist found so far
+    max_so_far = 0
 
-        ans = max(ans, ssum)
-        ssum = max(ssum, 0)
+    # stores maximum sum of sublist ending at current position
+    max_ending_here = 0
 
-    print(ans)
-    return ans
+    # traverse the given list
+    for i in range(len(A)):
+
+        # update maximum sum of sublist "ending" at index i (by adding
+        # current element to maximum sum ending at previous index i-1)
+        max_ending_here = max_ending_here + A[i]
+
+        # if maximum sum is negative, set it to 0 (which represents
+        # an empty sublist)
+        max_ending_here = max(max_ending_here, 0)
+
+        # update result if current sublist sum is found to be greater
+        max_so_far = max(max_so_far, max_ending_here)
+
+    return max_so_far
 
 
-def deb_py():
-    with open(r'D:\SakaevRF\reps\made2020\Programming\testf.txt', 'r') as f:
-        num_iter = f.readline()
-        n, k = map(int, f.readline().split())
-        sectors = tuple(map(int, f.readline().split()))
-    ans = solve(sectors, k)
+# Function to find maximum sum circular sublist in a given list
+def solve(A, k=-1):
+    if k != -1:
+        A = A[k+1:] + A[:k]
+        return kadane(A)
+
+    # negate all elements of the list
+    for i in range(len(A)):
+        A[i] = -A[i]
+
+    # run Kadane's algorithm on modified list
+    negMaxSum = kadane(A)
+
+    # restore the list
+    for i in range(len(A)):
+        A[i] = -A[i]
+
+    return max(kadane(A), sum(A) + negMaxSum)
 
 
 def main():
-    # n_iter = int(input())
-    # n, k = map(int, input().split())
-    # sectors = list(map(int, input().split()))
-    # reader = (map(int, line.split()) for line in sys.stdin)
     num_iter = int(sys.stdin.readline())
 
     for n_iter in range(num_iter):
         n, k = map(int, sys.stdin.readline().split())
-        sectors = tuple(map(int, sys.stdin.readline().split()))
-
+        sectors = list(map(int, sys.stdin.readline().split()))
         ans = solve(sectors, k)
         print(ans)
 
 
 if __name__ == '__main__':
-    deb_py()
-
-    # assert solve([2, 3, 4, 5, -30, 6, -1, 2], k=2) == 12
-    # assert solve([1, -3, 2, -2, 3, 4]) == 8
-    # assert solve([1, 2, 3]) == 6
-    # assert solve([3, 2, 1]) == 6
-    # assert solve([5, -10, 5]) == 10
-    # assert solve([-10, 5, 5]) == 10
-    # assert solve([5, 5, -10]) == 10
-    # assert solve([-10, -10, 5]) == 5
-    # assert solve([-10, 5, -10]) == 5
-    # assert solve([5, -10, -10]) == 5
-    # assert solve([5, -10, 5, -11]) == 5
-    # assert solve([5, 5, -11, 5, 6, -11]) == 11
-
-    # main()
+    main()

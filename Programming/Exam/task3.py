@@ -1,34 +1,39 @@
 import sys
+from math import gcd
 
 
 class Node(object):
     def __init__(self, val):
         self.val = int(val)
-        self.sum = [self.val]
+        self.sum = 0
+        self.n_parents = 0
 
-    def append(self, other_node):
-        new_sum = list()
-        for i in range(len(self.sum)):
-            for j in range(len(other_node.sum)):
-                curr_sum = (self.sum[i] + other_node.sum[j]) / len(self.sum)
-                new_sum.append(curr_sum)
-        self.sum = new_sum
+    @property
+    def mean(self):
+        if self.n_parents == 0:
+            return self.val
+        return self.sum / self.n_parents
+
+    def append(self, top_node):
+        self.sum += self.val + top_node.mean
+        self.n_parents += 1
 
 
 def solve(tree):
     for i in range(len(tree) - 1):
         top = tree[i]
         bottom = tree[i + 1]
-        for top_node in top:
-            for bot_node in bottom:
-                bot_node.append(top_node)
+        for j in range(len(top)):
+            bottom[j].append(top[j])
+            bottom[j + 1].append(top[j])
 
-    all_sums = list()
-    for node in tree[-1]:
-        all_sums += node.sum
+
+    all_sums = [int(node.sum) for node in tree[-1]]
+    all_nodes = [node.n_parents for node in tree[-1]]
     numerator = sum(all_sums)
-    nominator = len(all_sums)
-    return numerator, nominator
+    nominator = sum(all_nodes)
+    nod = gcd(numerator, nominator)
+    return numerator // nod, nominator // nod
 
 
 def main():

@@ -15,18 +15,19 @@ class Node(object):
         return self.sum / self.n_parents
 
     def append(self, top_node):
-        self.sum += self.val + top_node.mean
-        self.n_parents += 1
+        self.sum += (self.val + top_node.mean) * top_node.n_parents
+        self.n_parents += top_node.n_parents
 
 
 def solve(tree):
+    tree[0][0].sum = tree[0][0].val
+    tree[0][0].n_parents = 1
     for i in range(len(tree) - 1):
         top = tree[i]
         bottom = tree[i + 1]
         for j in range(len(top)):
             bottom[j].append(top[j])
             bottom[j + 1].append(top[j])
-
 
     all_sums = [int(node.sum) for node in tree[-1]]
     all_nodes = [node.n_parents for node in tree[-1]]

@@ -70,14 +70,19 @@ def main():
                 if html_copy.n_errors > 1:
                     # если много ошибок - можно дальше не считать
                     html_copy = None
-                elif html.n_errors > html_copy.n_errors:
-                    # если количество ошибок в копии меньше чем в орининале - производим замену
-                    html, html_copy = html_copy, None
+                # elif html.n_errors > html_copy.n_errors:
+                #     # если количество ошибок в копии меньше чем в орининале - производим замену
+                #     html, html_copy = html_copy, None
 
-        if html_copy is not None and html.get_errors() > html_copy.get_errors():
-            # если количество ошибок в копии меньше чем в орининале - производим замену
-            html, html_copy = html_copy, None
-        html.get_result()
+        if html_copy is not None:
+            err1 = html.get_errors()
+            err2 = html_copy.get_errors()
+            if err2 < err1:
+                html_copy.get_result()
+            else:
+                html.get_result()
+        else:
+            html.get_result()
 
 
 if __name__ == '__main__':

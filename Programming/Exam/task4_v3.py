@@ -1,46 +1,62 @@
 import sys
 from collections import deque
-import re
+from copy import deepcopy
 
 
-def loop(tag_str, match):
-    while match is not None:
-        tag_str = tag_str[:match.start()] + tag_str[match.end():]
-        match = re.search(r'<[a-zA-Z]+></[a-zA-Z]+>', tag_str)
-    return tag_str
+class HTML(object):
+    def __init__(self):
+        self.stack = deque()
+        self.n_errors = 0
+        self.error_tag = None
 
+    def add(self, tag):
+        # Возвращает True если нужно создать копию
+        if '/' not in tag:  # если тег открывающий
+            self.stack.append(tag)
+        else:  # если тег закрывающий
+            # достаем последний открывающий
+            try:
+                last_tag = self.stack.pop()
+            except IndexError:
+                # если стек пустой
+                self.n_errors += 1
+                self.error_tag = tag
+                return False
 
-def solve(tag_str):
-    match = re.search(r'<[a-zA-Z]+></[a-zA-Z]+>', tag_str)
-    tag_str = loop(tag_str, match)
-    # while match is not None:
-    #     tag_str = tag_str[:match.start()] + tag_str[match.end():]
-    #     match = re.search(r'<\w+></\w+>', tag_str)
-    if len(tag_str) == 0:
-        return 'CORRECT'
-    elif tag_str.count('<') == 1:
-        return f'ALMOST {tag_str.upper()}'
-    else:
-        match = re.search(r'<[a-zA-Z]+></?[a-zA-Z]+></[a-zA-Z]+>', tag_str)
-        tag_str = loop(tag_str, match)
-        if len(tag_str) == 0:
-            ans = match.group(0).split('>')[1] + '>'
-            return f'ALMOST {ans.upper()}'
-        elif tag_str.count('<') == 1:
-            return f'INCORRECT'
+            # если закрывающий тег не совпадает с открывающим:
+            if last_tag[1:-1] != tag[2:-1]:
+                self.error_tag = tag                # запоминаем тег,
+                self.n_errors += 1                  # увеличиваем счетчик ошибок,
+                self.stack.append(last_tag)         # возвращаем last_tag
+                return True
+        return False
+
+    def get_errors(self):
+        result_n_errors = self.n_errors + len(self.stack)
+        if len(self.stack) == 1:
+            self.error_tag = self.stack.pop()
+        return result_n_errors
+
+    def get_result(self):
+        result_n_errors = self.get_errors()
+        if result_n_errors > 1:
+            print("INCORRECT")
+        elif result_n_errors == 1:
+            print(f"ALMOST {self.error_tag.upper()}")
+        else:
+            print("CORRECT")
 
 
 def main():
     num_iter = int(sys.stdin.readline())
 
     for n_iter in range(num_iter):
+        html = HTML()
         n_tags = int(sys.stdin.readline())
-        tag_str = ''
         for _ in range(n_tags):
             tag = sys.stdin.readline().lower().strip()
-            tag_str += tag
-        ans = solve(tag_str)
-        print(ans)
+            html.add(tag)
+        html.get_result()
 
 
 if __name__ == '__main__':
